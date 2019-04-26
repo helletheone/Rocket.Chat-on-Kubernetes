@@ -1,0 +1,44 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: rocketchat-server-service
+spec:
+  selector:
+    app: rocketchat-server
+  ports:
+  - protocol: TCP
+    port: 33000
+    targetPort: 3000
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rocketchat-server-deployment
+  labels:
+    app: rocketchat-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rocketchat-server
+  template:
+    metadata:
+      labels:
+        app: rocketchat-server
+    spec:
+      containers:
+      - name: rocketchat-server
+        image: rocketchat/rocket.chat:latest
+        env:
+          - name: PORT
+            value: "3000"
+          - name: ROOT_URL
+            value: "http://localhost:3000"
+          - name: MONGO_URL
+            value: "mongodb://rocketchat-mongo-service-0.default,rocketchat-mongo-service-1.default,rocketchat-mongo-service-2.mongo:27017/rocketchat"
+          - name: MONGO_OPLOG_URL
+            value: "mongodb://rocketchat-mongo-service-0.default,rocketchat-mongo-service-1.default,rocketchat-mongo-service-2.mongo:27017/local"
+        ports:
+        - containerPort: 3000
