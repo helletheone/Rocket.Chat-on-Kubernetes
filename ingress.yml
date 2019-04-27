@@ -8,10 +8,10 @@ metadata:
   namespace: rocketchat
 spec:
   rules:
-  - host: rocketchat.example.com
+  - host: rocketchat-live.example.com
     http:
       paths:
       - backend:
-          serviceName: rocketchat-server
+          serviceName: rocketchat-server-service
           servicePort: 80
         path: /

@@ -1,0 +1,76 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: rocketchat-mongo-service
+spec:
+  selector:
+    app: rocketchat-mongo
+  ports:
+  - protocol: TCP
+    port: 27017
+    targetPort: 27017
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: rocketchat-mongo
+spec:
+  selector:
+    matchLabels:
+      app: rocketchat-mongo
+  serviceName: "rocketchat-mongo"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: rocketchat-mongo
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: mongodb
+        image: mongo:3.2
+        ports:
+        - containerPort: 27017
+          name: web
+        command: ["mongod"]
+        volumeMounts:
+        - name: mongo-persistent-storage
+          mountPath: /data/db
+      volumes:
+       - name: mongo-persistent-storage
+         persistentVolumeClaim:
+          claimName: mongo-persistent-storage
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  labels:
+    app: mongo-persistent-storage
+    name: mongo-persistent-storage
+  name: mongo-persistent-storage
+  namespace: rocketchat
+spec:
+  accessModes:
+  - ReadWriteOnce
+  capacity:
+    storage: 10Gi
+  nfs:
+    path: /nfs/rocketchat
+    server: 172.16.208.6
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app: mongo-persistent-storage
+    name: mongo-persistent-storage
+  name: mongo-persistent-storage
+  namespace: rocketchat
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
